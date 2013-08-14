@@ -34,6 +34,8 @@ import os
 from impacket.ImpactPacket import ImpactPacketException
 
 
+flag_verbose = False
+
 class Connection:
     """This class can be used as a key in a dictionary to select a connection
     given a pair of peers. Two connections are considered the same if both
@@ -102,6 +104,8 @@ class Decoder:
         other expressions.
         """
 
+        global flag_verbose
+        
         # Use the ImpactDecoder to turn the rawpacket into a hierarchy
         # of ImpactPacket instances.
         p = self.decoder.decode(data)
@@ -135,7 +139,9 @@ class Decoder:
             fn = os.path.abspath(os.path.join(self.dir,fn))
             
             
-            print "Found a new connection, storing into:", fn
+            if flag_verbose:
+                print "Found a new connection, storing into:", fn
+            
             try:
                 dumper = self.pcap.dump_open(fn)
             except pcapy.PcapError, e:
@@ -152,6 +158,7 @@ class Decoder:
 
 
 def main(filename):
+
     # Open file
     p = open_offline(filename)
     

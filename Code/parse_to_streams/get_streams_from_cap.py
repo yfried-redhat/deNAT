@@ -13,6 +13,8 @@ from impacket.ImpactPacket import ImpactPacketException
 from parse_stream_packets import dPacket
 
 
+flag_csv = False
+
     
 class dStream:
     def __init__(self, packets):
@@ -47,20 +49,21 @@ def main(pcap_filename):
     print 'deleting session dir...'
     shutil.rmtree(split_dir)
     
-    csv_filename = os.path.abspath(split_dir) + '.csv'
-    csv_out = open(csv_filename,'w')
+    if flag_csv:
+        csv_filename = os.path.abspath(split_dir) + '.csv'
+        csv_out = open(csv_filename,'w')
     
-    first_line = 'stream_num,' + ','.join(dPacket.attr_names_as_list()) +"\n"
-    csv_out.write(first_line)
+        first_line = 'stream_num,' + ','.join(dPacket.attr_names_as_list()) +"\n"
+        csv_out.write(first_line)
     
-    count_streams = 0
-    for stream in streams:
-        for packet in stream.packets:
-            line = str(count_streams) + ',' +packet.csv_line() + "\n"
-            csv_out.write(line)
-        count_streams += 1
-    
-    csv_out.close()
+        count_streams = 0
+        for stream in streams:
+            for packet in stream.packets:
+                line = str(count_streams) + ',' +packet.csv_line() + "\n"
+                csv_out.write(line)
+            count_streams += 1
+        
+        csv_out.close()
     
     return streams
 
