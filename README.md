@@ -21,4 +21,9 @@ packages
 ========
 main - project executed from here
 pcap_to_stream - parse packets and group them by stream 
-TCPts - tag tcp-stream with 
+TCPts_regression - tag stream with timestamp (if exist)
+        -flag
+        -linear regression:
+          -slope
+          -intercept
+          -statistical details (R,P,std_err)
