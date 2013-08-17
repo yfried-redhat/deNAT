@@ -21,20 +21,31 @@
 #  ImpactDecoder.
 
 
-import sys
+# Note: This module was edited by Yair Fried.
+# it no longer saves cap files.
+# it now returns:
+# list_of_streams, list_of_packet
+# list_of_streams: each stream is a list of the packets belonging to the
+# same stream
+# list_of_packets: raw list of all pakcets in cap in the order processed 
+
+
+
 # import string
 from exceptions import Exception
 # from threading import Thread
 
 import pcapy
 from pcapy import open_offline
-import impacket
 from impacket.ImpactDecoder import EthDecoder, LinuxSLLDecoder
 import os
 from impacket.ImpactPacket import ImpactPacketException
+from Code.parse_to_streams.streams_and_packets import dPacket,dStream, calc_wtime
+# from Code.parse_to_streams.get_streams_from_cap import dStream
 
 
 flag_verbose = False
+flag_csv = False
 
 class Connection:
     """This class can be used as a key in a dictionary to select a connection
@@ -82,6 +93,8 @@ class Decoder:
 
         self.pcap = pcapObj
         self.connections = {}
+        self.packet_count = 0 #added by yair
+        self.packet_list = [] #added by yair
         self.filename = filename
         self.dir = None
         
@@ -116,16 +129,33 @@ class Decoder:
         src = (ip.get_ip_src(), tcp.get_th_sport() )
         dst = (ip.get_ip_dst(), tcp.get_th_dport() )
         con = Connection(src,dst)
-
+        
+        wtime = calc_wtime(wts=hdr.getts())
+        TCPts = None
+        for opt in tcp.get_options():
+            try:
+                TCPts = opt.get_ts()
+                break
+            except ImpactPacketException:
+                pass
+        
+        self.packet_count += 1
+        packet = dPacket(wtime, ip.get_ip_dst(), tcp.get_th_sport(),
+                   tcp.get_th_dport(), ip.get_ip_id(), TCPts,self.packet_count)
+        
+        self.packet_list.append(packet)
+        
+        
         #add by yair - create dir for split files
-        split_dir_name = self.filename + '_TCPsessions'
-        newpath = os.path.join(os.getcwd(),split_dir_name) 
-        if not os.path.exists(os.path.abspath(newpath)):
-            os.makedirs(newpath)
+        if flag_csv:
+            split_dir_name = self.filename + '_TCPsessions'
+            newpath = os.path.join(os.getcwd(),split_dir_name) 
+#             if not os.path.exists(os.path.abspath(newpath)):
+#                 os.makedirs(newpath)
+             
+            self.dir = newpath
         
-        self.dir = newpath
-        
-        # If there isn't an entry associated yetwith this connection,
+        # If there isn't an entry associated yet with this connection,
         # open a new pcapdumper and create an association.
         if not self.connections.has_key(con):
 #             
@@ -134,25 +164,30 @@ class Decoder:
 #             sys.exit()
             
 #             add by yair - define new dir and filenames
-            tmp_fn = os.path.basename(self.filename)
-            fn = 'sesssion_'+tmp_fn +'_'+ con.getFilename()
-            fn = os.path.abspath(os.path.join(self.dir,fn))
+#             tmp_fn = os.path.basename(self.filename)
+#             fn = 'sesssion_'+tmp_fn +'_'+ con.getFilename()
+#             fn = os.path.abspath(os.path.join(self.dir,fn))
+#             
+#             
+#             if flag_verbose:
+#                 print "Found a new connection, storing into:", fn
+#             
+#             try:
+#                 dumper = self.pcap.dump_open(fn)
+#             except pcapy.PcapError, e:
+#                 print "Can't write packet to:", fn
+#                 return
+#             
             
-            
-            if flag_verbose:
-                print "Found a new connection, storing into:", fn
-            
-            try:
-                dumper = self.pcap.dump_open(fn)
-            except pcapy.PcapError, e:
-                print "Can't write packet to:", fn
-                return
-            self.connections[con] = dumper
-            
+#             Replaced by Yair:            
+#             self.connections[con] = dumper
+            self.connections[con] = []
              
 
+#                     Replaced by Yair:
         # Write the packet to the corresponding file.
-        self.connections[con].dump(hdr, data)
+#         self.connections[con].dump(hdr, data)
+        self.connections[con].append(packet)
         
 
 
@@ -171,8 +206,29 @@ def main(filename):
     m_decoder = Decoder(p,filename)
     m_decoder.start()
     
-    return os.path.abspath(m_decoder.dir)
-
+#     return os.path.abspath(m_decoder.dir)
+    
+    streams = []
+    for stream in m_decoder.connections.values():
+        streams.append(dStream(stream))
+    
+    if flag_csv:
+        csv_filename = os.path.abspath(m_decoder.dir) + '.csv'
+        csv_out = open(csv_filename,'w')
+    
+        first_line = 'stream_num,' + ','.join(dPacket.attr_names_as_list()) +"\n"
+        csv_out.write(first_line)
+    
+        count_streams = 0
+        for stream in streams:
+            for packet in stream.packets:
+                line = str(count_streams) + ',' +packet.csv_line() + "\n"
+                csv_out.write(line)
+            count_streams += 1
+        
+        csv_out.close()
+    
+    return streams, m_decoder.packet_list,
 # Process command-line arguments.
 if __name__ == '__main__':
     if len(sys.argv) <= 1:

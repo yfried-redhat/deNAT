@@ -3,12 +3,12 @@ Created on Aug 13, 2013
 
 @author: yfried
 '''
-import sys
-from ..parse_to_streams import get_streams_from_cap
+# from ..parse_to_streams import get_streams_from_cap
 from ..TCPts import TCPts_regression
 from pylab import plot, show
 from optparse import OptionParser
 from Code import parse_to_streams
+from Code.parse_to_streams import split_to_streams
 # from Code import parse_to_streams, TCPts
 # from ..parse_to_streams import get_streams_from_cap
 # import TCPts.TCPts_regression
@@ -62,7 +62,7 @@ def parse_cmd_arguments():
 
 
 def main(pcap_filename):
-    stream_list = get_streams_from_cap.main(pcap_filename)
+    stream_list, packet_list = split_to_streams.main(pcap_filename)
     for stream_obj in stream_list:
         tcp_reg = TCPts_regression.TCPts_regression(stream_obj)
 #         print tcp_reg
@@ -81,7 +81,7 @@ if __name__ == '__main__':
 #     args = sys.argv[1:]
     pcap_filename = args[0]
     
-    parse_to_streams.get_streams_from_cap.flag_csv = options.packet_csv
+    parse_to_streams.split_to_streams.flag_csv = options.packet_csv
     parse_to_streams.split_to_streams.flag_verbose = options.verbose
     main(pcap_filename) #, verbose=options.verbose)
 #     print 'hello'

@@ -4,12 +4,19 @@ Created on Apr 21, 2013
 
 @author: yfried
 
+this module contains classes for packet parsing:
+dPacket - parsed packets
+dStream - collecting dPackets belonging to the same tcp stream
+
+
 '''
 from pcapy import open_offline, PcapError
 import sys
 from impacket import ImpactDecoder
 from impacket.ImpactPacket import ImpactPacketException
 from decimal import Decimal
+
+
 
 
 
@@ -22,8 +29,9 @@ def calc_wtime(wts):
 
 
 class dPacket:
-    def __init__(self, wtime, dstip,src_port,dst_port, IPid, TCPts):
+    def __init__(self, wtime, dstip,src_port,dst_port, IPid, TCPts, sn=None):
 #         captured time
+        self.sn = sn
         self.time = wtime
 #         packet Serial Number within session
         
@@ -35,7 +43,8 @@ class dPacket:
         self.TCPts = TCPts
     
     def __str__(self):
-        out = ('time: ' + str(self.time) +
+        out = ('SN: '+ str(self.sn) +
+               ' time: ' + str(self.time) +
             ", dstIP: " + str(self.dst_ip) +
             ", src port: " + str(self.sport) +
             ", dst port: " + str(self.dport) + 
@@ -50,7 +59,7 @@ class dPacket:
         
     @staticmethod
     def attr_names_as_list():
-        return ["time", "dst_ip","sport","dport","IPid","TCPts"]
+        return ["SN","time", "dst_ip","sport","dport","IPid","TCPts"]
         
     def csv_line(self):
         str_list = [str(val) for val in self.attr_val_as_list()]
@@ -62,6 +71,7 @@ def parse_packet(header, data):
 #     eth = dpkt.ethernet.Ethernet(buf)
 #     ip = eth.data
 #     if ip.get_proto
+    
     wtime = calc_wtime(wts=header.getts())
     eth = ImpactDecoder.EthDecoder().decode(data)
     ip = eth.child()
@@ -78,6 +88,28 @@ def parse_packet(header, data):
     
     return dPacket(wtime, ip.get_ip_dst(), tcp.get_th_sport(),
                    tcp.get_th_dport(), ip.get_ip_id(), TCPts)
+
+
+  
+class dStream:
+    def __init__(self, packets):
+        first_pkt = packets[0]
+        self.dst_ip = first_pkt.dst_ip
+        self.dport = first_pkt.dport
+        self.sport = first_pkt.sport
+        
+        #list containing packet data of the session
+        self.packets = packets
+        
+    def __str__(self):
+        out=""
+        out += ('src_port: ' + str(self.sport) +
+                ', dst_port: ' + str(self.dport) +
+                ', dst_ip: ' + str(self.dst_ip) +
+                '\n containing ' + str(len(self.packets)) +
+                ' packets')
+        
+        return out
     
 
 def parse_stream_packtes(pcap_session):

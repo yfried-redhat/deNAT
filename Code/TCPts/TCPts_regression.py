@@ -4,8 +4,8 @@ Created on Aug 13, 2013
 @author: yfried
 '''
 
-from ..parse_to_streams.get_streams_from_cap import dStream
-from ..parse_to_streams.parse_stream_packets import dPacket
+from ..parse_to_streams.streams_and_packets import dStream, dPacket
+# from ..parse_to_streams.parse_stream_packets import dPacket
 from scipy import stats
 import sys
 from operator import itemgetter
