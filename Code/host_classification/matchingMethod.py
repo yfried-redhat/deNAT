@@ -4,10 +4,10 @@ Created on Aug 15, 2013
 @author: yfried
 '''
 import abc
-from Code.parse_to_streams.get_streams_from_cap import dStream
+from Code.parse_to_streams.streams_and_packets import dStream
 
 
-class identificationMethod(object):
+class matchingMethod(object):
     '''
     classdocs
     '''

@@ -35,6 +35,7 @@
 from exceptions import Exception
 # from threading import Thread
 
+import sys
 import pcapy
 from pcapy import open_offline
 from impacket.ImpactDecoder import EthDecoder, LinuxSLLDecoder

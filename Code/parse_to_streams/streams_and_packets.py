@@ -41,6 +41,7 @@ class dPacket:
         
         self.IPid = IPid
         self.TCPts = TCPts
+        self.stream = None
     
     def __str__(self):
         out = ('SN: '+ str(self.sn) +
@@ -100,6 +101,8 @@ class dStream:
         
         #list containing packet data of the session
         self.packets = packets
+        for pkt in self.packets:
+            pkt.host = self
         
     def __str__(self):
         out=""

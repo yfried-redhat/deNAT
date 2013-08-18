@@ -21,15 +21,22 @@ class Host(object):
     contains:
     
     streams - list of parsed packet streams
+    pakcets - list of parsed packets by order processed
     
     tagging method - list containing 0-2 values from [IPid, TCPts]
 
     '''
 
 
-    def __init__(self,tagging=[]):
+    def __init__(self,match_method=[]):
         '''
         Constructor
         '''
-        self.tagging = tagging
+        self.matching_methods = match_method
         self.streams = []
+        self.packets = []
+        
+        
+    def match_obj(self, match_obj, matchMethod):
+        "matchin the match_obj (stream or packet) to host"
+        
