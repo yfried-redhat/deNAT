@@ -99,6 +99,8 @@ class dStream:
         self.dport = first_pkt.dport
         self.sport = first_pkt.sport
         
+        self.host = None
+        
         #list containing packet data of the session
         self.packets = packets
         for pkt in self.packets:
