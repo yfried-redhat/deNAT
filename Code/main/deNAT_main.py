@@ -79,7 +79,7 @@ def main(pcap_filename):
             sort_by_ts.discarded_streams.append(stream_obj)
             
     hosts, discarded = sort_by_ts.result()
-    
+#     import pdb; pdb.set_trace()
     print 'hosts', len(hosts)
 #     for host in hosts:
 #         print host.host_ts

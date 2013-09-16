@@ -10,6 +10,8 @@ from scipy import stats
 import sys
 from operator import itemgetter
 from numpy.lib.polynomial import polyval
+from copy import deepcopy
+from matplotlib.pyplot import scatter, show
 
 class TCPts_regression:
     '''
@@ -32,6 +34,10 @@ class TCPts_regression:
 
         return ret
 
+    def __add__(self, other):
+        ret = deepcopy(self)
+        ret += other
+        return ret
     
     def __iadd__(self, other):
         
@@ -92,6 +98,15 @@ class TCPts_regression:
 #         print scatter_list, self.max
 #         sys.exit()     
      
+    def plot_scatter(self):
+        sct_x=list()
+        sct_y=list()
+        for x,y in self.scatter_list:
+            sct_x.append(x)
+            sct_y.append(y)
+        scatter(sct_x,sct_y)
+        show()
+    
     def __str__(self):
         out=''
         out += ('slope: ' + str(self.slope) +
