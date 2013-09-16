@@ -23,55 +23,68 @@ class TCPts_regression:
          x - packet wireshark timestamp
          y - packet tcp_timestamp
         '''
-        flag = False
         def map_packet_to_scatter(dPacket_obj):
             x,y = float(dPacket_obj.time),dPacket_obj.TCPts 
-#             print x,y
-#             sys.exit()
             if y:
                 return float(x),y
-#             else:
-#                 flag = True
-# #                 print 'found no TS'
-#                 sys.exit()
-#         return map(map_packet_to_scatter, dStream_obj.packets)
+            
         ret = [map_packet_to_scatter(pkt) for pkt in dStream_obj.packets]
-#         if flag:
-#             print ret
-#             sys.exit()
 
         return ret
 
-    def __init__(self, dStream_obj):
-        '''
-        Constructor
-        '''
-#         print len(dStream_obj.packets)
-#         sys.exit()
+    
+    def __iadd__(self, other):
         
-        scatter_list = self.scatter_plot(dStream_obj)
-#         print scatter_list 
-#         sys.exit()
-#         print scatter_list
-
-        
-        scatter_list = [point for point in scatter_list if point]
-#         print scatter_list
-
-        if scatter_list:
-            self.flag = True
-            slope, intercept, r_value, p_value, std_err = stats.linregress(scatter_list)
-    #         sys.exit()
+        try:
+            if not (self.flag and other.flag):
+                raise Exception('bad arguments')
+            
+            self.scatter_list.extend(other.scatter_list)
+            
+            slope, intercept, r_value, p_value, std_err = stats.linregress(self.scatter_list)
             self.slope = slope
             self.intercept = intercept
             self.r_val = r_value
             self.p_val = p_value
             self.std_err = std_err
             
-            self.max = max(scatter_list,key=itemgetter(1))
-            self.min = min(scatter_list,key=itemgetter(1))
+            self.max = max(self.scatter_list,key=itemgetter(1))
+            self.min = min(self.scatter_list,key=itemgetter(1))
             
-            self.x_grid = [x for x,y in scatter_list]
+            self.x_grid = [x for x,y in self.scatter_list]
+            self.line = polyval([self.slope, self.intercept], self.x_grid)
+            
+            return self
+            
+        except Exception as e:
+            print 'bad'
+            print e
+            sys.exit(1)
+
+    
+    def __init__(self, dStream_obj):
+        '''
+        Constructor
+        '''
+        
+        self.scatter_list = self.scatter_plot(dStream_obj)
+
+        
+        self.scatter_list = [point for point in self.scatter_list if point]
+
+        if self.scatter_list:
+            self.flag = True
+            slope, intercept, r_value, p_value, std_err = stats.linregress(self.scatter_list)
+            self.slope = slope
+            self.intercept = intercept
+            self.r_val = r_value
+            self.p_val = p_value
+            self.std_err = std_err
+            
+            self.max = max(self.scatter_list,key=itemgetter(1))
+            self.min = min(self.scatter_list,key=itemgetter(1))
+            
+            self.x_grid = [x for x,y in self.scatter_list]
             
             self.line = polyval([self.slope, self.intercept], self.x_grid)
         else:
@@ -83,9 +96,9 @@ class TCPts_regression:
         out=''
         out += ('slope: ' + str(self.slope) +
                  ' intercept: ' + str(self.intercept) +
-                 'R: ' + str(self.r_val) +
-                 'P: ' + str(self.p_val) +
-                 'std_err: ' + str(self.std_err)
+                 ' R: ' + str(self.r_val) +
+                 ' P: ' + str(self.p_val) +
+                 ' std_err: ' + str(self.std_err)
                  )
         return out
      

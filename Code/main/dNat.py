@@ -4,7 +4,7 @@ Created on Aug 18, 2013
 @author: yfried
 '''
 
-from Code.host_classification import matchingMethod,dHost
+from Code.Algorithms import dHost
 
 class dNat(object):
     '''

@@ -9,6 +9,9 @@ from pylab import plot, show
 from optparse import OptionParser
 from Code import parse_to_streams
 from Code.parse_to_streams import split_to_streams
+from Code.TCPts.dTcpTSAlg import dTcpTSAlgClass
+from Code.TCPts import dTcpTSAlg
+import sys
 # from Code import parse_to_streams, TCPts
 # from ..parse_to_streams import get_streams_from_cap
 # import TCPts.TCPts_regression
@@ -35,6 +38,8 @@ def parse_cmd_arguments():
 #                       help="color the ouput. options are: "+",".join(choice_colores))
 #     parser.add_option('-w', dest="HTMLFile",
 #                       help="print to HTMLFile")
+    parser.add_option('-b','--buffer', type='int', dest='tcp_var', default=None,
+                      help='% of variance allowed for tcp_ts')
     parser.add_option('-v',
                      action='store_true',dest="verbose", default=False,
                      help="set output to VERBOSE mode.")
@@ -63,16 +68,31 @@ def parse_cmd_arguments():
 
 def main(pcap_filename):
     stream_list, packet_list = split_to_streams.main(pcap_filename)
+    
+    sort_by_ts = dTcpTSAlgClass()
+    
     for stream_obj in stream_list:
-        tcp_reg = TCPts_regression.TCPts_regression(stream_obj)
+        stream_obj.tcp_reg = TCPts_regression.TCPts_regression(stream_obj)
+        if sort_by_ts.filter_streams(stream_obj):
+            sort_by_ts.step(stream_obj)
+        else:
+            sort_by_ts.discarded_streams.append(stream_obj)
+            
+    hosts, discarded = sort_by_ts.result()
+    
+    print 'hosts', len(hosts)
+#     for host in hosts:
+#         print host.host_ts
+#         print len(host.streams)
+    print 'discarded', len(discarded)
 #         print tcp_reg
-        if tcp_reg.flag:
-            plot(tcp_reg.x_grid, tcp_reg.line)
+#         if tcp_reg.flag:
+#             plot(tcp_reg.x_grid, tcp_reg.line)
 #         print tcp_reg.x_grid
 #         print tcp_reg.line
 #         sys.exit()
         
-    show()
+#     show()
 
 if __name__ == '__main__':
     
@@ -83,5 +103,10 @@ if __name__ == '__main__':
     
     parse_to_streams.split_to_streams.flag_csv = options.packet_csv
     parse_to_streams.split_to_streams.flag_verbose = options.verbose
+    
+    if options.tcp_var is not None:
+        dTcpTSAlg.reg_var = options.tcp_var
+#         print dTcpTSAlg.reg_var
+#         sys.exit()
     main(pcap_filename) #, verbose=options.verbose)
 #     print 'hello'

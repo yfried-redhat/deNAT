@@ -12,10 +12,12 @@ class dAlgorithm(object):
     '''
     __metaclass__ = abc.ABCMeta
 
+    @abc.abstractmethod
     def __init__(self):
         '''
         init algorithm
         '''
+#         self.hosts = []
         return
     
 #     @abc.abstractmethod
@@ -25,21 +27,45 @@ class dAlgorithm(object):
 #     return
 
         
-    @abc.abstractmethod
     def step(self, match_obj):
         """
         perform the algorithm for a single match_obj
+        return a host (old or new) to which match_obj was added
         """
         host = self.search(match_obj)
         if host is not None:
+            #add match_obj to existing host
             self.add_to_host(host, match_obj)
         else:
+            #init new host with match_obj
             host = self.init_host(match_obj)
             
         return host
-
     
         
+        
+        return
+    
+    def search(self, match_obj):
+        """
+        try match match_obj to existing host.
+        return host.
+        if fail - return None
+        """
+        for host in self.hosts:
+            if self.calc_match(host, match_obj):
+                return host
+        else:
+            return None
+    
+    @abc.abstractmethod
+    def init_host(self, match_obj):
+        """
+        create a new host for match_obj
+        """
+        return
+    
+    
     @abc.abstractmethod
     def filter_streams(self, match_obj):
         """
@@ -48,31 +74,16 @@ class dAlgorithm(object):
         """
         return
     
-    def filter_hosts(self,host):
-        """
-        check if host is valid for classification 
-        """
-        return
-        
-        
-    
-    def search(self, match_obj):
-        """
-        try match match_obj to existing host.
-        return host.
-        if fail - return None
-        """
-        return
-    
-    def init_host(self, match_obj):
-        """
-        create a new host for match_obj
-        """
-        return
+#     def filter_hosts(self,host):
+#         """
+#         check if host is valid for classification 
+#         """
+#         return
+#         
     
     @abc.abstractmethod
-    def calc_match(self,host ,stream_obj):
-        """check stream against previous streams.
+    def calc_match(self,host, match_obj):
+        """check stream against host's previous streams.
         return:
         @todo: choose between:
         1. boolean - belongs to list or not
