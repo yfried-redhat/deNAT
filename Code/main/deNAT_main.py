@@ -11,7 +11,6 @@ from Code import parse_to_streams
 from Code.parse_to_streams import split_to_streams
 from Code.TCPts.dTcpTSAlg import dTcpTSAlgClass
 from Code.TCPts import dTcpTSAlg
-import sys
 # from Code import parse_to_streams, TCPts
 # from ..parse_to_streams import get_streams_from_cap
 # import TCPts.TCPts_regression
@@ -81,8 +80,8 @@ def main(pcap_filename):
     hosts, discarded = sort_by_ts.result()
 #     import pdb; pdb.set_trace()
     print 'hosts', len(hosts)
-#     for host in hosts:
-#         print host.host_ts
+    for host in hosts:
+        print host.get_filter()
 #         print len(host.streams)
     print 'discarded', len(discarded)
 #         print tcp_reg

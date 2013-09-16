@@ -115,7 +115,14 @@ class dStream:
                 ' packets')
         
         return out
-    
+
+    def get_filter(self):
+        cap_filter = '((tcp.srcport == {sport}) && (tcp.dstport == {dport}) && (ip.dst == {ip}))'.format(
+              sport=self.sport,
+              dport=self.dport,
+              ip=self.dst_ip 
+        )
+        return cap_filter
 
 def parse_stream_packtes(pcap_session):
     (header,data) = pcap_session.next()

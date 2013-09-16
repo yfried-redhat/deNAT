@@ -51,7 +51,12 @@ class dHost(object):
         stream = self.streams[0]
         self.tcpts_init(stream.tcp_reg)
         
-        
+    def get_filter(self):
+#         import pdb; pdb.set_trace()
+        filters = [s.get_filter() for s in self.streams]
+#         pdb.set_trace()
+        return ' || '.join(filters)
+            
         
     def add_obj(self, dObj):
         "add obj (stream or packet) to host"
