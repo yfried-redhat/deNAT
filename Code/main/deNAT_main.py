@@ -6,11 +6,16 @@ Created on Aug 13, 2013
 # from ..parse_to_streams import get_streams_from_cap
 from ..TCPts import TCPts_regression
 from pylab import plot, show
+import matplotlib.pyplot as plt
 from optparse import OptionParser
 from Code import parse_to_streams
 from Code.parse_to_streams import split_to_streams
 from Code.TCPts.dTcpTSAlg import dTcpTSAlgClass
 from Code.TCPts import dTcpTSAlg
+import numpy as np
+# from matplotlib import cm
+import itertools
+
 # from Code import parse_to_streams, TCPts
 # from ..parse_to_streams import get_streams_from_cap
 # import TCPts.TCPts_regression
@@ -80,8 +85,30 @@ def main(pcap_filename):
     hosts, discarded = sort_by_ts.result()
 #     import pdb; pdb.set_trace()
     print 'hosts', len(hosts)
-    for host in hosts:
-        print host.get_filter()
+
+    # Have a look at the colormaps here and decide which one you'd like:
+    # http://matplotlib.org/1.2.1/examples/pylab_examples/show_colormaps.html
+#     num_plots = len(hosts)
+#     colormap = plt.cm.gist_ncar(np.random.random())
+#     colors = iter(cm.rainbow(np.linspace(0, 1)))
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+#     ax1.gca().set_color_cycle(['red', 'green', 'blue', 'yellow'])
+#     ax1.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 0.9, num_plots)])
+
+    labels = []
+    for i, host in enumerate(hosts):
+        x,y = host.host_ts.plot_scatter(False)
+        ax1.scatter(x,y,color=plt.cm.gist_ncar(np.random.random()))
+        labels.append('host {num}'.format(num=i))
+    
+    ax1.legend(labels, ncol=4, loc='upper center', 
+           bbox_to_anchor=[0.5, 1.1], 
+           columnspacing=1.0, labelspacing=0.0,
+           handletextpad=0.0, handlelength=1.5,
+           fancybox=True, shadow=True)
+    show()
+        
 #         print len(host.streams)
     print 'discarded', len(discarded)
 #         print tcp_reg

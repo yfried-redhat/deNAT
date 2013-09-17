@@ -98,14 +98,16 @@ class TCPts_regression:
 #         print scatter_list, self.max
 #         sys.exit()     
      
-    def plot_scatter(self):
+    def plot_scatter(self, plot_flag=True):
         sct_x=list()
         sct_y=list()
         for x,y in self.scatter_list:
             sct_x.append(x)
             sct_y.append(y)
-        scatter(sct_x,sct_y)
-        show()
+        if plot_flag:
+            scatter(sct_x,sct_y)
+            show()
+        return sct_x, sct_y
     
     def __str__(self):
         out=''
