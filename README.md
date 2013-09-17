@@ -6,7 +6,10 @@ count hosts behind a NAT
 ========================================================
 usage (from within the deNAT dir):
 
-python -m Code.main.deNAT_main <pcap-filename>
+python -m Code.main.deNAT_main [options] <pcap-filename>
+
+python -m Code.main.deNAT_main -h
+for usage and more options
 
 pcap-filename - a capture file containing a single-side sniffing capture where all packets has the same source IP (NAT)
 
