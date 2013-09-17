@@ -5,8 +5,6 @@ Created on Aug 13, 2013
 '''
 # from ..parse_to_streams import get_streams_from_cap
 from ..TCPts import TCPts_regression
-from pylab import plot, show
-import matplotlib.pyplot as plt
 from optparse import OptionParser
 from Code import parse_to_streams
 from Code.parse_to_streams import split_to_streams
@@ -15,6 +13,8 @@ from Code.TCPts import dTcpTSAlg
 import numpy as np
 # from matplotlib import cm
 import itertools
+from matplotlib.pyplot import show
+import os
 
 # from Code import parse_to_streams, TCPts
 # from ..parse_to_streams import get_streams_from_cap
@@ -40,8 +40,12 @@ def parse_cmd_arguments():
 #     parser.add_option('-c',
 #                       choices=choice_colores, dest="color",
 #                       help="color the ouput. options are: "+",".join(choice_colores))
-#     parser.add_option('-w', dest="HTMLFile",
-#                       help="print to HTMLFile")
+    parser.add_option('-d', dest="outputdir", default=None,
+                      help="save output to this directory")
+    parser.add_option('-s','--std', type='float', dest='tcp_std_err', default=None,
+                      help='maximun valid std_err for tcp_reg')
+    parser.add_option('-r','--rval', type='float', dest='tcp_r_val', default=None,
+                      help='minimum valid r_val for tcp_reg')
     parser.add_option('-b','--buffer', type='int', dest='tcp_var', default=None,
                       help='% of variance allowed for tcp_ts')
     parser.add_option('-v',
@@ -83,42 +87,10 @@ def main(pcap_filename):
             sort_by_ts.discarded_streams.append(stream_obj)
             
     hosts, discarded = sort_by_ts.result()
-#     import pdb; pdb.set_trace()
-    print 'hosts', len(hosts)
-
-    # Have a look at the colormaps here and decide which one you'd like:
-    # http://matplotlib.org/1.2.1/examples/pylab_examples/show_colormaps.html
-#     num_plots = len(hosts)
-#     colormap = plt.cm.gist_ncar(np.random.random())
-#     colors = iter(cm.rainbow(np.linspace(0, 1)))
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-#     ax1.gca().set_color_cycle(['red', 'green', 'blue', 'yellow'])
-#     ax1.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 0.9, num_plots)])
-
-    labels = []
-    for i, host in enumerate(hosts):
-        x,y = host.host_ts.plot_scatter(False)
-        ax1.scatter(x,y,color=plt.cm.gist_ncar(np.random.random()))
-        labels.append('host {num}'.format(num=i))
-    
-    ax1.legend(labels, ncol=4, loc='upper center', 
-           bbox_to_anchor=[0.5, 1.1], 
-           columnspacing=1.0, labelspacing=0.0,
-           handletextpad=0.0, handlelength=1.5,
-           fancybox=True, shadow=True)
+        
     show()
-        
-#         print len(host.streams)
-    print 'discarded', len(discarded)
-#         print tcp_reg
-#         if tcp_reg.flag:
-#             plot(tcp_reg.x_grid, tcp_reg.line)
-#         print tcp_reg.x_grid
-#         print tcp_reg.line
-#         sys.exit()
-        
-#     show()
+
+
 
 if __name__ == '__main__':
     
@@ -130,8 +102,17 @@ if __name__ == '__main__':
     parse_to_streams.split_to_streams.flag_csv = options.packet_csv
     parse_to_streams.split_to_streams.flag_verbose = options.verbose
     
+    if options.outputdir is not None:
+        if not os.path.exists(options.outputdir):
+            os.makedirs(options.outputdir)
+        os.chdir(options.outputdir)
+        print 'writing results to {path}'.format(path=options.outputdir)
     if options.tcp_var is not None:
         dTcpTSAlg.reg_var = options.tcp_var
+    if options.tcp_r_val is not None:
+        dTcpTSAlg.r_val_bar = options.tcp_r_val
+    if options.tcp_std_err is not None:
+        dTcpTSAlg.std_var = options.tcp_std_err
 #         print dTcpTSAlg.reg_var
 #         sys.exit()
     main(pcap_filename) #, verbose=options.verbose)

@@ -101,6 +101,27 @@ class dAlgorithm(object):
         stream.host = host        
         """
         return
+
+    @abc.abstractmethod
+    def log_results(self):
+        return
     
-            
+class dLogger(object):
+    
+    def __init__(self, filename='resfile.txt'):
+        self.rfile = open(filename,'w')
+        
+    def write(self, message):
+        self.rfile.write(message)
+    
+    def writelines(self, lines):
+        self.rfile.writelines(lines)
+        
+    def close(self):
+        self.rfile.close()
+    
+    def print_to_terminal(self):
+        with open(self.rfile.name, 'r') as fin:
+            print fin.read()
+                   
     
