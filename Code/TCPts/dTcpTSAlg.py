@@ -106,22 +106,23 @@ class dTcpTSAlgClass(dAlgorithm):
         host.add_ts(stream_obj.tcp_reg)
         
     def result(self):
+        self.grade_hosts()
         if flag_filters:
             self.write_filters_to_file()
         if flag_graph:
             self.draw_hosts()
-        self.grade_hosts()
         self.log_results()
         return self.hosts, self.discarded_streams
 
 
     def write_filters_to_file(self):
         f = open('filter_hosts_by_tcp_timestamps', 'w')
-        for i, host in enumerate(self.hosts):
-            msg = 'host #{n}\n'.format(n=i)
-            f.write(msg)
-            msg = host.get_filter()
-            f.write(msg + '\n')
+        for j, key in enumerate(self.hosts.keys()):
+            for i, host in enumerate(self.hosts[key]):
+                msg = 'host #{k}.{n}\n'.format(k=j+1,n=i+1)
+                f.write(msg)
+                msg = host.get_filter()
+                f.write(msg + '\n')
         f.close()
         return f
     
@@ -138,10 +139,11 @@ class dTcpTSAlgClass(dAlgorithm):
     #     ax1.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 0.9, num_plots)])
     
         labels = []
-        for i, host in enumerate(self.hosts):
-            x,y = host.host_ts.plot_scatter(False)
-            ax1.scatter(x,y,color=plt.cm.gist_ncar(np.random.random()))
-            labels.append('host {num}'.format(num=i+1))
+        for j, key in enumerate(self.hosts.keys()):
+            for i, host in enumerate(self.hosts[key]):
+                x,y = host.host_ts.plot_scatter(False)
+                ax1.scatter(x,y,color=plt.cm.gist_ncar(np.random.random()))
+                labels.append('host {k}.{num}'.format(k=j+1,num=i+1))
 #         import pdb; pdb.set_trace()
         ax1.set_title(ttl)
         
@@ -180,12 +182,12 @@ class dTcpTSAlgClass(dAlgorithm):
                                                                                             noh=len(self.hosts['no_hosts'])
                                                                                             ))
         lines.append('discarded streams (not fitting for tcp_ts criteria): {dis}'.format(dis=len(self.discarded_streams)))
-        for key in self.hosts.keys():
-            lines.append('hosts type {type}'.format(type=key))
+        for j, key in enumerate(self.hosts.keys()):
+            lines.append('{n}. hosts type {type}'.format(n=j+1,type=key))
             for i, host in enumerate(self.hosts[key]):
-                lines.append('host #{n}:'.format(n=i+1))
-                lines.append('matched {n} TCP streams'.format(n=len(host.streams)))
-                lines.append('tcp regression: ' + str(host.host_ts))
+                lines.append('\thost #{t}.{n}:'.format(t=j+1,n=i+1))
+                lines.append('\tmatched {n} TCP streams'.format(n=len(host.streams)))
+                lines.append('\ttcp regression: ' + str(host.host_ts))
 #             lines.append('') #empty line
         
         lines = '\n'.join(lines)
