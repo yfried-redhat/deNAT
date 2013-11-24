@@ -73,7 +73,14 @@ class deIpId:
                 return;
         self.init_host(packet); #Create a new host
         
+    #for each packet runAlgorithm should be called
     def runAlgorithm (self, packet):            
         self.goOverAllHosts(self,packet);      
         return 1;
-                
+    
+    #merging hosts which are close enough
+    #TBD
+    def mergeHosts(self):
+        return 0;
+    def getHosts(self):
+        return self.hosts;
