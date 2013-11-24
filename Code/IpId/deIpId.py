@@ -74,6 +74,6 @@ class deIpId:
         self.init_host(packet); #Create a new host
         
     def runAlgorithm (self, packet):            
-        self.goOverAllHosts(self,packet):       
+        self.goOverAllHosts(self,packet);      
         return 1;
                 
