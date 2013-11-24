@@ -27,8 +27,8 @@ class deIpId:
         self.lastRecievedPacket = None
         self.hosts = []
     
-    def init_host(self, stream_obj):
-        new_host = dHost.dHost(stream_obj)
+    def init_host(self, obj):
+        new_host = dHost.dHost(obj)
         self.hosts.append(new_host)
         return new_host
         
@@ -71,8 +71,9 @@ class deIpId:
                 return;  
             elif (self.checkOnHost(self, packet, h) == matchTypes.DUP):
                 return;
-             
-    def runAlgorithm (self):            
-        #TBD       
+        self.init_host(packet); #Create a new host
+        
+    def runAlgorithm (self, packet):            
+        self.goOverAllHosts(self,packet):       
         return 1;
                 
