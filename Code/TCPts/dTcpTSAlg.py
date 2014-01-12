@@ -175,12 +175,14 @@ class dTcpTSAlgClass(dAlgorithm):
     
     def log_results(self):
         lines = list()
-        lines.append('discard criteria:\n\tno tcp_ts\n\tcp_reg.r_val < {rval}'.format(rval=r_val_bar))
-        lines.append('match criteria (append stream to host if):\n\tnew_tcp_reg.std_err < {std}'.format(std=std_var))
-        lines.append('hosts found:\n {sure}\nlow probability: {prob}\nbad id: {noh}'.format(sure=len(self.hosts['sure_hosts']),
-                                                                                            prob=len(self.hosts['prob_hosts']),
-                                                                                            noh=len(self.hosts['no_hosts'])
-                                                                                            ))
+        lines.append('discard criteria:\n\tno tcp_ts\n\tcp_reg.r_val '
+                     '< {rval}'.format(rval=r_val_bar))
+        lines.append('match criteria (append stream to host if):\n\t'
+                     'new_tcp_reg.std_err < {std}'.format(std=std_var))
+        lines.append('hosts found:\n {sure}\nlow probability: {prob}\n'
+                     'bad id: {noh}'.format(sure=len(self.hosts['sure_hosts']),
+                                            prob=len(self.hosts['prob_hosts']),
+                                            noh=len(self.hosts['no_hosts'])))
         lines.append('discarded streams (not fitting for tcp_ts criteria): {dis}'.format(dis=len(self.discarded_streams)))
         for j, key in enumerate(self.hosts.keys()):
             lines.append('{n}. hosts type {type}'.format(n=j+1,type=key))

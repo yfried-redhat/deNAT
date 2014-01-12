@@ -4,7 +4,8 @@ Created on Aug 13, 2013
 @author: yfried
 '''
 # from ..parse_to_streams import get_streams_from_cap
-from ..TCPts import TCPts_regression
+from Code.IpId.deIpId import deIpId
+from Code.TCPts import TCPts_regression
 from optparse import OptionParser
 from Code import parse_to_streams
 from Code.parse_to_streams import split_to_streams
@@ -78,14 +79,21 @@ def main(pcap_filename):
     stream_list, packet_list = split_to_streams.main(pcap_filename)
     
     sort_by_ts = dTcpTSAlgClass()
+    sort_by_ipid = deIpId()
     
-    for stream_obj in stream_list:
-        stream_obj.tcp_reg = TCPts_regression.TCPts_regression(stream_obj)
-        if sort_by_ts.filter_streams(stream_obj):
-            sort_by_ts.step(stream_obj)
-        else:
-            sort_by_ts.discarded_streams.append(stream_obj)
+    # for stream_obj in stream_list:
+    #     stream_obj.tcp_reg = TCPts_regression.TCPts_regression(stream_obj)
+    #     if sort_by_ts.filter_streams(stream_obj):
+    #         sort_by_ts.step(stream_obj)
+    #     else:
+    #         sort_by_ts.discarded_streams.append(stream_obj)
             
+    for packet_obj in packet_list:
+        sort_by_ipid.runAlgorithm(packet_obj)
+
+    ipid_hosts = sort_by_ipid.getHosts()
+
+
     hosts, discarded = sort_by_ts.result()
         
     show()

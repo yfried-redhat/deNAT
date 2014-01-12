@@ -43,14 +43,12 @@ class dHost(object):
         if isinstance(dObj, dStream):
             self.streams = [dObj]
             self.packets = [dObj.packets]
+            stream = self.streams[0]
+            self.tcpts_init(stream.tcp_reg)
         elif isinstance(dObj, dPacket):
             self.packets = [dObj]
             self.streams = [dObj.stream]
             
-            
-        stream = self.streams[0]
-        self.tcpts_init(stream.tcp_reg)
-        
     def get_filter(self):
 #         import pdb; pdb.set_trace()
         filters = [s.get_filter() for s in self.streams]
@@ -65,7 +63,7 @@ class dHost(object):
             self.packets += dObj.packets
 #             stream = dObj
         elif isinstance(dObj, dPacket):
-            self.packets += dObj
+            self.packets.append(dObj)
             self.streams.append(dObj.stream)
 #             stream = dObj.stream
         
