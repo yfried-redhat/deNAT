@@ -16,6 +16,7 @@ import numpy as np
 import itertools
 from matplotlib.pyplot import show
 import os
+import cPickle as pickle
 
 # from Code import parse_to_streams, TCPts
 # from ..parse_to_streams import get_streams_from_cap
@@ -23,7 +24,7 @@ import os
  
 flag_verbose = False
 
-
+pickle_mode = True
 
 def parse_cmd_arguments():
     """
@@ -76,9 +77,25 @@ def parse_cmd_arguments():
 
 
 def main(pcap_filename):
-    stream_list, packet_list = split_to_streams.main(pcap_filename)
+    if pickle_mode:
+        print "pickle mode"
+        p_pkt_lst = open('pkt_lst_full', 'rb')
+        p_strm_lst = open('stm_lst', 'rb')
+        stream_list = pickle.load(p_strm_lst)
+        packet_list = pickle.load(p_pkt_lst)
+    else:
+        stream_list, packet_list = split_to_streams.main(pcap_filename)
+
+        p_pkt_lst = open('pkt_lst_full', 'wb')
+        p_strm_lst = open('stm_lst', 'wb')
+        pickle.dump(stream_list[:0], p_strm_lst)
+        pickle.dump(packet_list, p_pkt_lst)
+
+    p_pkt_lst.close()
+    p_strm_lst.close()
+
     
-    sort_by_ts = dTcpTSAlgClass()
+    # sort_by_ts = dTcpTSAlgClass()
     sort_by_ipid = deIpId()
     
     # for stream_obj in stream_list:
@@ -88,13 +105,14 @@ def main(pcap_filename):
     #     else:
     #         sort_by_ts.discarded_streams.append(stream_obj)
             
-    for packet_obj in packet_list:
+    for packet_obj in packet_list[:2000]:
         sort_by_ipid.runAlgorithm(packet_obj)
 
-    ipid_hosts = sort_by_ipid.getHosts()
+
+    ipid_hosts, ipid_discarded = sort_by_ipid.getHosts()
 
 
-    hosts, discarded = sort_by_ts.result()
+    # hosts, discarded = sort_by_ts.result()
         
     show()
 

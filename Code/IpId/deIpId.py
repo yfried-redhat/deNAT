@@ -16,14 +16,15 @@ class matchTypes:
     NOT_MATCH = 0
     PERFECT_MATCH = 1
     OUT_OF_ORDER_MATCH = 2
-    DUP = 3
+    SKIP = 3
+    DUP = 4
 
 
 class deIpId:
     def __str__(self):
         return "deIpId class"
 
-    def __init__(self, timeLim=300, gapLim=64, timeFac=5, gapFac=70, fSize=50):
+    def __init__(self, timeLim=300, gapLim=64, timeFac=5, gapFac=1, fSize=50):
         self.timeLim = timeLim
         self.gapLim = gapLim
         self.timeFac = timeFac
@@ -43,9 +44,8 @@ class deIpId:
         self.lastRecievedPacket = host.packets[-1]
         #we have already recieved at least one packet
         newLastTimeDelta = abs(newPacket.time - self.lastRecievedPacket.time)
-        newLastTimeDelta = newLastTimeDelta % (2^16)
-        pIdDelta = (self.newPacket.IPid - self.lastRecievedPacket.IPid) \
-                   % (2^16)
+        pIdDelta = (self.newPacket.IPid -
+                    self.lastRecievedPacket.IPid) % 2**16
         if newLastTimeDelta > self.timeLim or newPacket.IPid == 0:
             return matchTypes.NOT_MATCH
             #do nothing this packet doesn't match
@@ -55,39 +55,46 @@ class deIpId:
             if self.checkPacketExists(host, newPacket):
                 return matchTypes.DUP
             else:
-                return matchTypes.OUT_OF_ORDER_MATCH
+                if newPacket.time < self.lastRecievedPacket.time:
+                    print "OutOfOrderException\n packet {p}"\
+                                    "\nlastRecieved {l}".format(
+                        p=newPacket,
+                        l=self.lastRecievedPacket)
+                    return matchTypes.OUT_OF_ORDER_MATCH
+                else:
+                    return matchTypes.SKIP
 
     #check if the packet exists on specific host
     def checkPacketExists(self, host, packet):
-        for pckt in host.packets:
-            if packet == pckt:
-                return True        
-        return False
+        return packet.IPid in [p.IPid for p in host.packets]
 
     #go over all hosts and trying add the packet to specific host
     #if not added to host create a new host
     def goOverAllHosts(self, packet):
-        for h in self.hosts:                        
-            if self.checkOnHost(packet, h) == matchTypes.PERFECT_MATCH:
+        for h in self.hosts:
+            match_val = self.checkOnHost(packet, h)
+            if match_val == matchTypes.PERFECT_MATCH:
                 h.add_obj(packet)
                 break
-            elif self.checkOnHost(packet, h) == matchTypes.NOT_MATCH:
+            elif match_val == matchTypes.NOT_MATCH:
                 break
-            elif self.checkOnHost(packet, h) == matchTypes.OUT_OF_ORDER_MATCH:
+            elif match_val == matchTypes.SKIP:
                 h.add_obj(packet)
                 break
-            elif self.checkOnHost(packet, h) == matchTypes.DUP:
+            elif match_val == matchTypes.OUT_OF_ORDER_MATCH:
+                break
+            elif match_val == matchTypes.DUP:
                 break
         else:
             self.init_host(packet) #Create a new host
         
-    def draw_hosts(self):
-        ttl='hosts found using IPid'
+    def draw_hosts(self, host_list, title):
+        ttl=title
         fig = plt.figure(ttl)
         ax1 = fig.add_subplot(111)
         labels = []
 
-        for i, host in enumerate(self.hosts):
+        for i, host in enumerate(host_list):
             #     x, y = [(packet.time, packet.IPid) for packet in host.packets]
             # except ValueError:
             #     continue
@@ -119,8 +126,50 @@ class deIpId:
     #merging hosts which are close enough
     #TBD
     def mergeHosts(self):
-        return 0
+        final = []
+        # maybe sort self.hosts by first/last packet time?
+
+        while(self.hosts):
+            # until hosts_list is empty
+            final_host = self.hosts.pop()
+            skip_hosts = []
+            # collect all hosts that match final_host:
+            for h in self.hosts:
+            # iterate over list without final_host
+                if self.match_hosts(final_host, h):
+                    # add h to final_host
+                    final_host.packets = final_host.packets + h.packets
+                    skip_hosts.append(h)
+            # remove skip_hosts from hosts_list
+            # (hosts_list = hosts_list - skip_hosts):
+            self.hosts = [h for h in self.hosts if h not in skip_hosts]
+            # add final_host to final
+            final.append(final_host)
+
+        # fiter out hosts with less than self.fSize packets
+        self.hosts = [h for h in final if len(h.packets) >= self.fSize]
+        self.nonHosts = [h for h in final if not h in self.hosts]
+
+        return self.hosts, self.nonHosts
+
+    def match_hosts(self, hostA, hostB):
+        if ((abs(hostB.packets[-1].IPid - hostA.packets[-1].IPid) <=
+                    self.gapFac*self.gapLim) and
+            (abs(hostB.packets[-1].time - hostA.packets[-1].time) <=
+                            self.timeFac * self.timeLim)):
+            return True
+        else:
+            return False
+
+
 
     def getHosts(self):
-        self.draw_hosts()
-        return self.hosts
+        self.draw_hosts(self.hosts, "IPid before merge")
+        hosts, discarded = self.mergeHosts()
+        self.draw_hosts(hosts, "IPid after merge")
+        return hosts, discarded
+
+    def imidiate_draw(self):
+        self.draw_hosts(self.hosts, "%d packets" % sum([len(h.packets) for
+        h in self.hosts]))
+        plt.show()
