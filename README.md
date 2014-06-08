@@ -38,3 +38,8 @@ TCPts_regression - tag stream with timestamp (if exist)
           -intercept
 
           -statistical details (R,P,std_err)
+
+
+====
+This project is no longer developed, but if you have questions, feel free to contact me
+Yair
